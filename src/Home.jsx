@@ -62,7 +62,7 @@ const Home = () => {
   const [accounts, setAccounts] = useState([]);
   const [notification, setNotification] = useState("");
   const [selectedGame, setSelectedGame] = useState(null); // Add this line
-
+  const network = "0x6";
   //************************METAMASK
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -132,6 +132,33 @@ const Home = () => {
     }, 3000);
   };
 
+  const getNetworkName = async () => {
+    if (web3) {
+      try {
+        const networkId = await web3.eth.net.getId();
+        if (networkId === 97) {
+          setNotification("Connected to BNB Testnet");
+        } else {
+          setNotification("Not connected to BNB Testnet. Switching network...");
+          await switchNetwork();
+        }
+      } catch (error) {
+        console.error("Error getting network:", error);
+        setNotification("Error getting network: " + error.message);
+      }
+    } else {
+      setNotification("Web3 not initialized. Please connect your wallet.");
+    }
+  };
+
+  const requestFaucet = async () => {};
+
+  useEffect(() => {
+    if (isConnected) {
+      getNetworkName();
+    }
+  }, [isConnected]);
+
   useEffect(() => {
     if (notification) {
       clearNotification();
@@ -184,7 +211,24 @@ const Home = () => {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <header className="bg-gray-800 p-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Reeta's Crypto Casino</h1>
+          <h1 className="text-2xl font-bold">Reeta's Crypto Games</h1>
+          {isConnected && (
+            <Button
+              onClick={switchNetwork}
+              className={`mr-4 ${"bg-green-500 hover:bg-green-600"} text-white transform hover:scale-105 transition-all duration-200`}
+            >
+              Change Network
+            </Button>
+          )}
+
+          {isConnected && (
+            <Button
+              onClick={requestFaucet}
+              className="mr-4 bg-blue-500 hover:bg-blue-600 text-white transform hover:scale-105 transition-all duration-200"
+            >
+              Request Faucet
+            </Button>
+          )}
           <Button
             onClick={connectWallet}
             className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-gray-900 transform hover:scale-105 transition-all duration-200"
@@ -244,4 +288,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default  Home ;

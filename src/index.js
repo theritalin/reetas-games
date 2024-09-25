@@ -5,8 +5,6 @@ import Home from "./Home";
 
 import reportWebVitals from "./reportWebVitals";
 
-import Metamask from "./Metamask";
-
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>

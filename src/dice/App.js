@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Web3 from "web3";
+import dice1 from "./image/1.png";
+import dice2 from "./image/2.png";
+import dice3 from "./image/3.png";
+import dice4 from "./image/4.png";
+import dice5 from "./image/5.png";
+import dice6 from "./image/6.png";
+import play from "./image/play.png";
 
 const contractAddress = "0x996f661f1bF0B1d749bD4C57beDD03887E028D99";
 const contractABI = [
@@ -153,14 +160,7 @@ const App = () => {
   const [yourChoice, setYourChoice] = useState("");
   const [AIChoice, setAIChoice] = useState(null);
 
-  const diceImages = [
-    "https://i.imgur.com/3xTKtLe.png",
-    "https://i.imgur.com/WvvZGtH.png",
-    "https://i.imgur.com/qQoMRzk.png",
-    "https://i.imgur.com/wYVxKmZ.png",
-    "https://i.imgur.com/72Rl7kX.png",
-    "https://i.imgur.com/PBrZlLz.png",
-  ];
+  const diceImages = [dice1, dice2, dice3, dice4, dice5, dice6];
 
   useEffect(() => {
     const initWeb3 = async () => {
@@ -180,6 +180,10 @@ const App = () => {
   }, []);
 
   const playGame = async () => {
+    // Clear the results of old games
+    setYourChoice("");
+    setAIChoice(null);
+    setPayout(0);
     try {
       if (!web3 || !contract || !userAddress) {
         console.error("Please connect your Ethereum wallet.");
@@ -212,13 +216,13 @@ const App = () => {
 
   const withdraw = async () => {
     try {
+      let balance = await contract.methods.checkGameBalance().call();
+      console.log(`Balance: ${balance}`);
       await contract.methods.withdraw().send({
         from: userAddress,
         maxFeePerGas: 10000000000,
         maxPriorityFeePerGas: 10000000000,
       });
-      let balance = await contract.methods.checkGameBalance().call();
-      console.log(`Balance: ${balance}`);
     } catch (error) {
       console.error("Error executing withdraw function:", error);
     }
@@ -246,14 +250,14 @@ const App = () => {
               <img
                 alt="choose"
                 onClick={playGame}
-                className="w-20 h-20 cursor-pointer hover:opacity-80 transition-opacity"
-                src="https://i.imgur.com/YzAFxnm.png"
+                className="w-40 h-40 cursor-pointer hover:opacity-80 transition-opacity"
+                src={play}
               />
             </div>
             <div className="space-y-6">
               <div className="flex justify-between items-center">
                 <div className="flex flex-col items-center">
-                  <p className="font-bold mb-2">You</p>
+                  <p className="font-bold mb-2">You </p>
                   {yourChoice && (
                     <img
                       alt="Your dice"
@@ -274,9 +278,7 @@ const App = () => {
                 </div>
               </div>
               {getGameResult()}
-              <p className="text-center font-semibold">
-                Payout: {payout} ETH
-              </p>
+              <p className="text-center font-semibold">Payout: {payout} ETH</p>
               <div className="flex justify-center">
                 <button
                   onClick={withdraw}
