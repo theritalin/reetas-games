@@ -7,13 +7,33 @@ import dice4 from "./image/4.png";
 import dice5 from "./image/5.png";
 import dice6 from "./image/6.png";
 import play from "./image/play.png";
+import { Button } from "@chakra-ui/react";
+const contractAddress = "0x3fec591ced1c61d8682f81a5fbf3e9c4644b8d18";
 
-const contractAddress = "0x996f661f1bF0B1d749bD4C57beDD03887E028D99";
 const contractABI = [
   {
     inputs: [],
     stateMutability: "nonpayable",
     type: "constructor",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: false,
+        internalType: "address",
+        name: "owner",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "gamecost",
+        type: "uint256",
+      },
+    ],
+    name: "GameFeeMessage",
+    type: "event",
   },
   {
     anonymous: false,
@@ -55,6 +75,78 @@ const contractABI = [
   {
     inputs: [
       {
+        internalType: "uint256",
+        name: "fee",
+        type: "uint256",
+      },
+    ],
+    name: "changeGameFee",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "checkContractBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "checkFee",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "checkGameBalance",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "get_owner",
+    outputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "play",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
         internalType: "address",
         name: "",
         type: "address",
@@ -69,22 +161,6 @@ const contractABI = [
       },
     ],
     stateMutability: "view",
-    type: "function",
-    constant: true,
-  },
-  {
-    inputs: [],
-    name: "play",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-    payable: true,
-  },
-  {
-    inputs: [],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
     type: "function",
   },
   {
@@ -120,35 +196,20 @@ const contractABI = [
     ],
     stateMutability: "pure",
     type: "function",
-    constant: true,
   },
   {
     inputs: [],
-    name: "checkGameBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
+    name: "withdraw",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
-    constant: true,
   },
   {
     inputs: [],
-    name: "get_owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
+    name: "withdrawContractBalance",
+    outputs: [],
+    stateMutability: "nonpayable",
     type: "function",
-    constant: true,
   },
 ];
 
@@ -192,7 +253,7 @@ const App = () => {
 
       const transaction = await contract.methods.play().send({
         from: userAddress,
-        value: web3.utils.toWei("0.001", "ether"),
+        value: web3.utils.toWei("0.1", "ether"),
         maxFeePerGas: 10000000000,
         maxPriorityFeePerGas: 10000000000,
       });
@@ -241,7 +302,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-6 flex flex-col justify-center sm:py-12">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-4">
       <div className="relative py-3 sm:max-w-xl sm:mx-auto">
         <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-light-blue-500 shadow-lg transform -skew-y-6 sm:skew-y-0 sm:-rotate-6 sm:rounded-3xl"></div>
         <div className="relative px-4 py-10 bg-white shadow-lg sm:rounded-3xl sm:p-20">
@@ -280,12 +341,7 @@ const App = () => {
               {getGameResult()}
               <p className="text-center font-semibold">Payout: {payout} ETH</p>
               <div className="flex justify-center">
-                <button
-                  onClick={withdraw}
-                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                >
-                  Check Balance and Withdraw
-                </button>
+                <Button onClick={withdraw}>Check Balance and Withdraw</Button>
               </div>
             </div>
           </div>

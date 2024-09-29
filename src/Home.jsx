@@ -1,12 +1,5 @@
 import React, { useState, useEffect, Suspense } from "react";
-import {
-  ChevronRight,
-  Coins,
-  Dice5,
-  LayoutGrid,
-  Wallet,
-  Menu,
-} from "lucide-react";
+import { ChevronRight, Coins, Dice5, LayoutGrid, Wallet } from "lucide-react";
 import "./Home.css";
 import Web3 from "web3";
 import WalletInfo from "./WalletInfo";
@@ -38,6 +31,17 @@ const networks = {
     rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545"],
     blockExplorerUrls: ["https://testnet.bscscan.com"],
   },
+  REETA: {
+    chainId: "0x27E0",
+    chainName: "REETA",
+    nativeCurrency: {
+      name: "REETA",
+      symbol: "REETA",
+      decimals: 18,
+    },
+    rpcUrls: ["https://evm.average-moth-69.telebit.io"],
+    blockExplorerUrls: [""],
+  },
 };
 
 //************************BUTTON
@@ -62,7 +66,7 @@ const Home = () => {
   const [accounts, setAccounts] = useState([]);
   const [notification, setNotification] = useState("");
   const [selectedGame, setSelectedGame] = useState(null); // Add this line
-  const network = "0x6";
+
   //************************METAMASK
   const connectWallet = async () => {
     if (window.ethereum) {
@@ -108,7 +112,7 @@ const Home = () => {
   const switchNetwork = async () => {
     if (accounts.length > 0) {
       try {
-        await changeNetwork("BNBTESTNET");
+        await changeNetwork("REETA");
         setNotification("Network switched successfully.");
       } catch (error) {
         console.error("Failed to switch network:", error);
@@ -137,9 +141,11 @@ const Home = () => {
       try {
         const networkId = await web3.eth.net.getId();
         if (networkId === 97) {
-          setNotification("Connected to BNB Testnet");
+          setNotification("Connected to REETA Testnet");
         } else {
-          setNotification("Not connected to BNB Testnet. Switching network...");
+          setNotification(
+            "Not connected to REETA Testnet. Switching network..."
+          );
           await switchNetwork();
         }
       } catch (error) {
@@ -151,7 +157,37 @@ const Home = () => {
     }
   };
 
-  const requestFaucet = async () => {};
+  async function faucet() {
+    /*     try {
+      // Get the current gas price and nonce
+      const gasPrice = await web33.eth.getGasPrice();
+      const nonce = await web33.eth.getTransactionCount(faucetAccount.address);
+      const balance = await web33.eth.getBalance(accounts[0].address); */
+    /*       if (balance < web33.utils.toWei("2", "ether")) {
+        // Create transaction object
+        const tx = {
+          from: faucetAccount.address,
+          to: accounts[0].address,
+          value: web33.utils.toWei("5", "ether"), // Convert amount to Wei
+          gasPrice: gasPrice,
+          gas: 21000, // Standard gas limit for sending Ether
+          nonce: nonce,
+        };
+
+        // Sign the transaction
+        const signedTx = await faucetAccount.signTransaction(tx);
+
+        // Send the signed transaction
+        const receipt = await web33.eth.sendSignedTransaction(
+          signedTx.rawTransaction
+        );
+
+        console.log("Transaction sent:", receipt.transactionHash);
+      }
+    } catch (error) {
+      console.log(error);
+    } */
+  }
 
   useEffect(() => {
     if (isConnected) {
@@ -176,23 +212,22 @@ const Home = () => {
               <a
                 href="#"
                 className="flex items-center p-2 rounded-lg hover:bg-gray-700"
-                onClick={() => setSelectedGame("dice")} // Add this line
+                onClick={() => setSelectedGame("math")} // Add this line
               >
-                <Dice5 className="mr-3" />
-                Dice
+                <LayoutGrid className="mr-3" />
+                Math Challenge
               </a>
             </li>
             <li>
               <a
                 href="#"
                 className="flex items-center p-2 rounded-lg hover:bg-gray-700"
-                onClick={() => setSelectedGame("math")} // Add this line
+                onClick={() => setSelectedGame("dice")} // Add this line
               >
-                <LayoutGrid className="mr-3" />
-                Math
+                <Dice5 className="mr-3" />
+                Dice
               </a>
             </li>
-
             <li>
               <a
                 href="#"
@@ -223,7 +258,7 @@ const Home = () => {
 
           {isConnected && (
             <Button
-              onClick={requestFaucet}
+              onClick={faucet}
               className="mr-4 bg-blue-500 hover:bg-blue-600 text-white transform hover:scale-105 transition-all duration-200"
             >
               Request Faucet
@@ -270,12 +305,20 @@ const Home = () => {
                     Welcome to Reeta's Games!
                   </h2>
                   <p className="text-xl mb-6">
-                    Select a game from the sidebar to start playing.
+                    Math Game Rules
+                    <ul>
+                      <li>
+                        1. Find target number with given numbers and operations
+                      </li>
+                      <li>
+                        2. When done,approve transaction and get 0.2 REETA
+                      </li>
+                    </ul>
+                    Dice Game Rules
+                    <ul>
+                      <li>1. Roll the dice and get 0.2 REETA if win</li>
+                    </ul>
                   </p>
-                  <Button className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-gray-900 transform hover:scale-105 transition-all duration-200">
-                    <ChevronRight className="mr-2" />
-                    Play Now
-                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -288,4 +331,4 @@ const Home = () => {
   );
 };
 
-export default  Home ;
+export default Home;
