@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import Web3 from "web3";
+import React, { useState, useEffect, useContext } from "react";
+import { ethers } from "ethers";
 import dice1 from "./image/1.png";
 import dice2 from "./image/2.png";
 import dice3 from "./image/3.png";
@@ -8,236 +8,20 @@ import dice5 from "./image/5.png";
 import dice6 from "./image/6.png";
 import play from "./image/play.png";
 import { Button } from "@chakra-ui/react";
-const contractAddress = "0x3fec591ced1c61d8682f81a5fbf3e9c4644b8d18";
-
-const contractABI = [
-  {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "owner",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "gamecost",
-        type: "uint256",
-      },
-    ],
-    name: "GameFeeMessage",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "playerNumber",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "computerNumber",
-        type: "uint256",
-      },
-      {
-        indexed: false,
-        internalType: "bool",
-        name: "playerWins",
-        type: "bool",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "payout",
-        type: "uint256",
-      },
-    ],
-    name: "GameResult",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "fee",
-        type: "uint256",
-      },
-    ],
-    name: "changeGameFee",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "checkContractBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "checkFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "checkGameBalance",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "get_owner",
-    outputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "play",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "playerBalances",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "seed1",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "seed2",
-        type: "uint256",
-      },
-      {
-        internalType: "address",
-        name: "user",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "bNumber",
-        type: "uint256",
-      },
-    ],
-    name: "roll",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "pure",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawContractBalance",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-];
+import { WalletContext } from "../WalletContext"; // WalletContext'i içe aktar
 
 const App = () => {
-  const [web3, setWeb3] = useState(null);
-  const [contract, setContract] = useState(null);
-  const [userAddress, setUserAddress] = useState(null);
   const [payout, setPayout] = useState(0);
   const [yourChoice, setYourChoice] = useState("");
   const [AIChoice, setAIChoice] = useState(null);
+  const { account, diceContract } = useContext(WalletContext);
 
   const diceImages = [dice1, dice2, dice3, dice4, dice5, dice6];
 
   useEffect(() => {
-    const initWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
-        setWeb3(web3Instance);
-        const contractInstance = new web3Instance.eth.Contract(
-          contractABI,
-          contractAddress
-        );
-        setContract(contractInstance);
-        const accounts = await web3Instance.eth.getAccounts();
-        setUserAddress(accounts[0]);
-      }
-    };
-    initWeb3();
+    const initEthers = async () => {};
+
+    initEthers();
   }, []);
 
   const playGame = async () => {
@@ -246,30 +30,43 @@ const App = () => {
     setAIChoice(null);
     setPayout(0);
     try {
-      if (!web3 || !contract || !userAddress) {
+      if (!account) {
         console.error("Please connect your Ethereum wallet.");
         return;
       }
 
-      const transaction = await contract.methods.play().send({
-        from: userAddress,
-        value: web3.utils.toWei("0.1", "ether"),
+      const transaction = await diceContract.play({
+        from: account,
+        value: ethers.utils.parseEther("0.1", "ether"),
         maxFeePerGas: 10000000000,
         maxPriorityFeePerGas: 10000000000,
       });
 
-      const playerNumber = Number(
-        transaction.events.GameResult.returnValues.playerNumber
-      );
-      const computerNumber = Number(
-        transaction.events.GameResult.returnValues.computerNumber
-      );
-      const paid = transaction.events.GameResult.returnValues.payout;
-      const payoutEther = web3.utils.fromWei(paid, "ether");
+      const result = await transaction.wait();
 
-      setYourChoice(playerNumber);
-      setAIChoice(computerNumber);
-      setPayout(payoutEther);
+      // Assuming result.events is an array of event logs:
+      const gameResultEvent = result.events.find(
+        (event) => event.event === "GameResult"
+      );
+
+      if (gameResultEvent) {
+        const playerAddress = gameResultEvent.args[0]; // First argument: player address
+        const computerNumber = Number(gameResultEvent.args[2]); // Second argument: computer number (BigNumber)
+        const playerNumber = Number(gameResultEvent.args[1]); // Third argument: player number (BigNumber)
+        const isWinner = gameResultEvent.args[3]; // Fourth argument: is winner (boolean)
+        const paid = gameResultEvent.args[4]; // Fifth argument: payout (BigNumber)
+
+        console.log("Computer Number:", computerNumber.toString()); // Convert BigNumber to string for logging
+        console.log("Player Number:", playerNumber.toString());
+        console.log("Is Winner:", isWinner);
+        console.log("Payout:", payout.toString());
+
+        const payoutEther = ethers.utils.formatEther(paid);
+
+        setYourChoice(playerNumber);
+        setAIChoice(computerNumber);
+        setPayout(payoutEther);
+      }
     } catch (error) {
       console.error("Error playing the game:", error);
     }
@@ -277,10 +74,10 @@ const App = () => {
 
   const withdraw = async () => {
     try {
-      let balance = await contract.methods.checkGameBalance().call();
+      let balance = await diceContract.checkGameBalance();
       console.log(`Balance: ${balance}`);
-      await contract.methods.withdraw().send({
-        from: userAddress,
+      await diceContract.withdraw({
+        from: account,
         maxFeePerGas: 10000000000,
         maxPriorityFeePerGas: 10000000000,
       });

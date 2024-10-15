@@ -1,11 +1,12 @@
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useContext } from "react";
 import { ChevronRight, Coins, Dice5, LayoutGrid, Wallet } from "lucide-react";
 import "./Home.css";
-import Web3 from "web3";
+
 import WalletInfo from "./WalletInfo";
 import App from "./dice/App";
 import MathGame from "./math/App";
 import SlotsGame from "./slot/App";
+import { WalletContext } from "./WalletContext"; // WalletContext'i içe aktar
 
 //************************METAMASK
 window.onunhandledrejection = function (event) {
@@ -20,17 +21,6 @@ window.onerror = function (message, source, lineno, colno, error) {
 };
 
 const networks = {
-  BNBTESTNET: {
-    chainId: "0x61",
-    chainName: "BNBTESTNET",
-    nativeCurrency: {
-      name: "BNB",
-      symbol: "tBNB",
-      decimals: 18,
-    },
-    rpcUrls: ["https://data-seed-prebsc-1-s1.binance.org:8545"],
-    blockExplorerUrls: ["https://testnet.bscscan.com"],
-  },
   REETA: {
     chainId: "0x27E0",
     chainName: "REETA",
@@ -60,57 +50,14 @@ const CardContent = ({ children, className }) => (
 );
 
 const Home = () => {
-  const [isConnected, setIsConnected] = useState(false);
-  const [web3, setWeb3] = useState(null);
-  const [error, setError] = useState(null);
-  const [accounts, setAccounts] = useState([]);
   const [notification, setNotification] = useState("");
   const [selectedGame, setSelectedGame] = useState(null); // Add this line
-
+  const { account, isConnected, connectWallet, provider } =
+    useContext(WalletContext);
   //************************METAMASK
-  const connectWallet = async () => {
-    if (window.ethereum) {
-      try {
-        await window.ethereum.request({ method: "eth_requestAccounts" });
-        setWeb3(new Web3(window.ethereum));
-        setNotification("Wallet successfully connected.");
-        setIsConnected(true);
-      } catch (error) {
-        console.error("Please Refresh Website:", error);
-        setNotification("Already Connected.");
-      }
-    } else {
-      console.log("Wallet not found. Try again.");
-      setNotification("Wallet not found.");
-    }
-  };
-
-  useEffect(() => {
-    const initializeWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
-        try {
-          await window.ethereum.enable();
-          const accounts = await web3Instance.eth.getAccounts();
-          setWeb3(web3Instance);
-          setAccounts(accounts);
-          setIsConnected(true);
-        } catch (error) {
-          console.error("Error initializing web3:", error);
-          setError("Error initializing web3.");
-        }
-      } else {
-        console.log("Metamask is not installed!");
-        setError("Metamask is not installed!");
-      }
-    };
-
-    initializeWeb3();
-    // eslint-disable-next-line
-  }, []);
 
   const switchNetwork = async () => {
-    if (accounts.length > 0) {
+    if (account.length > 0) {
       try {
         await changeNetwork("REETA");
         setNotification("Network switched successfully.");
@@ -137,57 +84,27 @@ const Home = () => {
   };
 
   const getNetworkName = async () => {
-    if (web3) {
+    if (account) {
       try {
-        const networkId = await web3.eth.net.getId();
-        if (networkId === 97) {
+        const network = await provider.getNetwork(); // Get network using ethers.js
+
+        if (network.chainId === 97) {
+          // Check if connected to REETA Testnet (chainId 97 is BSC Testnet)
           setNotification("Connected to REETA Testnet");
         } else {
           setNotification(
             "Not connected to REETA Testnet. Switching network..."
           );
-          await switchNetwork();
+          await switchNetwork(); // Call your function to switch network
         }
       } catch (error) {
         console.error("Error getting network:", error);
         setNotification("Error getting network: " + error.message);
       }
     } else {
-      setNotification("Web3 not initialized. Please connect your wallet.");
+      setNotification("Ethers not initialized. Please connect your wallet.");
     }
   };
-
-  async function faucet() {
-    /*     try {
-      // Get the current gas price and nonce
-      const gasPrice = await web33.eth.getGasPrice();
-      const nonce = await web33.eth.getTransactionCount(faucetAccount.address);
-      const balance = await web33.eth.getBalance(accounts[0].address); */
-    /*       if (balance < web33.utils.toWei("2", "ether")) {
-        // Create transaction object
-        const tx = {
-          from: faucetAccount.address,
-          to: accounts[0].address,
-          value: web33.utils.toWei("5", "ether"), // Convert amount to Wei
-          gasPrice: gasPrice,
-          gas: 21000, // Standard gas limit for sending Ether
-          nonce: nonce,
-        };
-
-        // Sign the transaction
-        const signedTx = await faucetAccount.signTransaction(tx);
-
-        // Send the signed transaction
-        const receipt = await web33.eth.sendSignedTransaction(
-          signedTx.rawTransaction
-        );
-
-        console.log("Transaction sent:", receipt.transactionHash);
-      }
-    } catch (error) {
-      console.log(error);
-    } */
-  }
 
   useEffect(() => {
     if (isConnected) {
@@ -205,7 +122,7 @@ const Home = () => {
     <div className="flex h-screen bg-gray-900 text-white">
       {/* Sidebar */}
       <div className="w-64 bg-gray-800 p-6 hidden md:block">
-        <h2 className="text-2xl font-bold mb-6">Reeta's Games</h2>
+        <h2 className="text-2xl font-bold mb-6">Reeta's Games v1.1</h2>
         <nav>
           <ul className="space-y-2">
             <li>
@@ -256,16 +173,8 @@ const Home = () => {
             </Button>
           )}
 
-          {isConnected && (
-            <Button
-              onClick={faucet}
-              className="mr-4 bg-blue-500 hover:bg-blue-600 text-white transform hover:scale-105 transition-all duration-200"
-            >
-              Request Faucet
-            </Button>
-          )}
           <Button
-            onClick={connectWallet}
+            onClick={isConnected ? null : connectWallet}
             className="bg-gradient-to-r from-yellow-400 to-yellow-600 hover:from-yellow-500 hover:to-yellow-700 text-gray-900 transform hover:scale-105 transition-all duration-200"
           >
             {isConnected ? (

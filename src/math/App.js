@@ -1,279 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Box, Button, Heading, VStack } from "@chakra-ui/react";
 import { Progress } from "@chakra-ui/react";
 import { Sparkles, Clock, Target } from "lucide-react";
-import Web3 from "web3";
-
-const contractAddress = "0x59d007A9b3A244A068b2Ec20E3B608BB44a8B6E6";
-const contractABI = [
-  {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "newFee",
-        type: "uint256",
-      },
-    ],
-    name: "FeeChanged",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-    ],
-    name: "GameOver",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "fee",
-        type: "uint256",
-      },
-    ],
-    name: "GamePlayed",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "payout",
-        type: "uint256",
-      },
-    ],
-    name: "GameWon",
-    type: "event",
-  },
-  {
-    anonymous: false,
-    inputs: [
-      {
-        indexed: false,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
-    ],
-    name: "Withdrawal",
-    type: "event",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_newFee",
-        type: "uint256",
-      },
-    ],
-    name: "changeFee",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "_newtime",
-        type: "uint256",
-      },
-    ],
-    name: "changeTime",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "uint256",
-        name: "playerResult",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "target",
-        type: "uint256",
-      },
-    ],
-    name: "checkResult",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
-    ],
-    name: "forceEndGame",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "gameFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "gameStartTime",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getFee",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "getTime",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "play",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-    ],
-    name: "playerBalances",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "timeLimit",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "useFaucet",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdraw",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawContractBalance",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    stateMutability: "payable",
-    type: "receive",
-  },
-];
+import { WalletContext } from "../WalletContext"; // WalletContext'i içe aktar
+import { ethers } from "ethers";
 
 const generateRandomNumbers = () => {
   const smallNumbers = Array.from(
@@ -289,34 +19,15 @@ const generateTargetNumber = () => Math.floor(Math.random() * 900) + 100;
 const OPERATIONS = ["+", "-", "×", "÷"];
 
 export default function MathGame() {
-  const [contract, setContract] = useState(null);
   const [targetNumber, setTargetNumber] = useState(generateTargetNumber());
   const [initialNumbers, setInitialNumbers] = useState(generateRandomNumbers());
   const [numbers, setNumbers] = useState([...initialNumbers]);
   const [currentCalculation, setCurrentCalculation] = useState([]);
   const [calculations, setCalculations] = useState([]);
   const [timer, setTimer] = useState(120); // 3 minutes
-  const [gameOver, setGameOver] = useState(false);
+  const [gameOver, setGameOver] = useState(true);
   const [payout, setPayout] = useState(0);
-  const [userAddress, setUserAddress] = useState(null);
-  const [web3, setWeb3] = useState(null);
-  useEffect(() => {
-    setGameOver(true);
-    const initWeb3 = async () => {
-      if (window.ethereum) {
-        const web3Instance = new Web3(window.ethereum);
-        setWeb3(web3Instance);
-        const contractInstance = new web3Instance.eth.Contract(
-          contractABI,
-          contractAddress
-        );
-        setContract(contractInstance);
-        const accounts = await web3Instance.eth.getAccounts();
-        setUserAddress(accounts[0]);
-      }
-    };
-    initWeb3();
-  }, []);
+  const { account, mathContract } = useContext(WalletContext);
 
   useEffect(() => {
     let interval;
@@ -365,9 +76,10 @@ export default function MathGame() {
           // Player wins, payout is double the bet
           setPayout(0.2);
 
-          await contract.methods
-            .checkResult(result, targetNumber)
-            .send({ from: userAddress });
+          await mathContract.checkResult(result, targetNumber, {
+            from: account,
+          });
+
           setGameOver(true);
         }
 
@@ -391,26 +103,30 @@ export default function MathGame() {
   };
 
   const startGame = async () => {
-    if (!contract || !userAddress) {
+    if (!account) {
       console.error("Contract or user address not available");
       return;
     }
 
     try {
-      await contract.methods.play().send({
-        from: userAddress,
-        value: web3.utils.toWei("0.1", "ether"),
+      const tx = await mathContract.play({
+        from: account,
+        value: ethers.utils.parseEther("0.1", "ether"),
       });
 
-      const newInitialNumbers = generateRandomNumbers();
-      setTargetNumber(generateTargetNumber());
-      setInitialNumbers(newInitialNumbers);
-      setNumbers(newInitialNumbers);
-      setCurrentCalculation([]);
-      setCalculations([]);
-      setTimer(120);
-      setGameOver(false);
-      setPayout(0);
+      const result = await tx.wait();
+
+      if (result) {
+        const newInitialNumbers = generateRandomNumbers();
+        setTargetNumber(generateTargetNumber());
+        setInitialNumbers(newInitialNumbers);
+        setNumbers(newInitialNumbers);
+        setCurrentCalculation([]);
+        setCalculations([]);
+        setTimer(120);
+        setGameOver(false);
+        setPayout(0);
+      }
     } catch (error) {
       console.error("Error starting the game:", error);
     }
@@ -424,25 +140,32 @@ export default function MathGame() {
 
   const forceEndGame = async () => {
     try {
-      await contract.methods
-        .forceEndGame(userAddress)
-        .send({ from: userAddress });
+      await mathContract.forceEndGame(account, { from: account });
     } catch (error) {}
   };
 
   const withdraw = async () => {
     try {
-      await contract.methods.withdraw().send({ from: userAddress });
+      await mathContract.withdraw({ from: account });
     } catch (error) {}
   };
 
+  const Faucet = async () => {
+    try {
+      await mathContract.useFaucet({ from: account });
+    } catch (error) {}
+  };
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-700 to-indigo-900 p-4">
       <Box className="w-full max-w-md bg-white/10 backdrop-blur-md border-none text-white">
         <VStack className="space-y-1">
-          <Heading className="text-2xl font-bold text-center">
-            Math Challenge
-          </Heading>
+          <div className="flex justify-between mt-4">
+            <Heading className="text-2xl font-bold text-center">
+              Math Challenge
+            </Heading>
+            <Button onClick={Faucet}>Faucet</Button>
+          </div>
+
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <Target className="h-5 w-5 text-yellow-400" />
@@ -564,5 +287,3 @@ export default function MathGame() {
     </div>
   );
 }
-
-///faucet üzerinde çalış

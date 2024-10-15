@@ -1,28 +1,25 @@
-import React, { useState, useEffect } from "react";
-import Web3 from "web3";
+import React, { useState, useEffect, useContext } from "react";
+import { ethers } from "ethers";
 import "./Home.css";
+import { WalletContext } from "./WalletContext"; // WalletContext'i içe aktar
 
 function WalletInfo() {
-  const [account, setAccount] = useState("");
   const [balance, setBalance] = useState("");
+  const { account, provider } = useContext(WalletContext);
 
   const loadWalletData = async () => {
     if (window.ethereum) {
-      const web3 = new Web3(window.ethereum);
-      const accounts = await web3.eth.getAccounts();
+      try {
+        if (account) {
+          const balance = await provider.getBalance(account); // Cüzdan bakiyesini alıyoruz
 
-      if (accounts.length > 0) {
-        const account = accounts[0];
-        const balance = await web3.eth.getBalance(account);
+          setBalance(ethers.utils.formatEther(balance)); // Wei'yi Ether'e çeviriyoruz
+        } else {
+          setBalance("0.0000");
+        }
+      } catch (error) {
+        console.error("Error loading wallet data:", error);
 
-        setAccount(
-          `${account.substring(0, 6)}...${account.substring(
-            account.length - 4
-          )}`
-        );
-        setBalance(web3.utils.fromWei(balance, "ether"));
-      } else {
-        setAccount("");
         setBalance("0.0000");
       }
     }
@@ -33,7 +30,6 @@ function WalletInfo() {
 
     const handleAccountsChanged = (accounts) => {
       if (accounts.length === 0) {
-        setAccount("");
         setBalance("0.0000");
       } else {
         loadWalletData();
@@ -62,7 +58,7 @@ function WalletInfo() {
   const formattedBalance = balance ? parseFloat(balance).toFixed(4) : "0.0000";
 
   return (
-    <div className={`px-4 py-2 rounded `}>
+    <div className={`px-4 py-2 rounded`}>
       <p>Address: {account}</p>
       <p>{formattedBalance} REETA</p>
     </div>
